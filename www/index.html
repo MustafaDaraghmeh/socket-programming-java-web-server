@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Web Server - Socket Programming Demo</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>Java Web Server</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/pages/about.html">About</a></li>
+                <li><a href="/pages/socket-info.html">Socket Info</a></li>
+                <li><a href="/pages/examples.html">Examples</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Welcome to Java Web Server</h1>
+            <p class="subtitle">A Professional Example of Socket Programming in Java</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="features">
+            <h2>Key Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🔌 Socket Programming</h3>
+                    <p>Demonstrates ServerSocket, Socket, and network communication using TCP/IP protocols.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚙️ Multi-Threading</h3>
+                    <p>Handles multiple concurrent client requests efficiently using Java threads.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🌐 HTTP Protocol</h3>
+                    <p>Implements HTTP/1.0 request/response format with proper headers and status codes.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📂 Static File Serving</h3>
+                    <p>Serves HTML, CSS, JavaScript, images, and other static files with correct MIME types.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🛡️ Error Handling</h3>
+                    <p>Graceful error handling with HTTP 404 responses and proper exception management.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Request Logging</h3>
+                    <p>Tracks all incoming requests with client IP addresses and response codes.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>How It Works</h2>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>1. Server Creation</h3>
+                    <p>A <code>ServerSocket</code> is created on a specified port, listening for incoming TCP connections.</p>
+                </div>
+                <div class="info-box">
+                    <h3>2. Connection Acceptance</h3>
+                    <p>The <code>socket.accept()</code> method blocks until a client connects, returning a <code>Socket</code> object.</p>
+                </div>
+                <div class="info-box">
+                    <h3>3. Thread Spawning</h3>
+                    <p>A new thread is created for each client, allowing concurrent request handling.</p>
+                </div>
+                <div class="info-box">
+                    <h3>4. Request Processing</h3>
+                    <p>The thread reads the HTTP request from the socket's input stream and parses the file request.</p>
+                </div>
+                <div class="info-box">
+                    <h3>5. Response Generation</h3>
+                    <p>The server constructs an HTTP response with appropriate headers and sends the file content.</p>
+                </div>
+                <div class="info-box">
+                    <h3>6. Connection Close</h3>
+                    <p>The socket is closed, and the thread terminates, freeing resources for the next request.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-start">
+            <h2>Quick Start</h2>
+            <div class="code-block">
+                <h3>Compile the Server</h3>
+                <pre><code>cd /path/to/webserver
+javac *.java</code></pre>
+            </div>
+            <div class="code-block">
+                <h3>Run the Server</h3>
+                <pre><code>java WebServer 5555</code></pre>
+            </div>
+            <div class="code-block">
+                <h3>Access in Browser</h3>
+                <pre><code>http://localhost:5555/</code></pre>
+            </div>
+        </section>
+
+        <section class="learning-path">
+            <h2>Learning Path</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h3>Understand Sockets</h3>
+                    <p>Learn the basics of ServerSocket and Socket classes, and how they facilitate network communication.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Study HTTP Protocol</h3>
+                    <p>Explore HTTP request/response format, headers, status codes, and MIME types.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Threading Concepts</h3>
+                    <p>Understand why multi-threading is essential for handling concurrent requests.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>Explore the Code</h3>
+                    <p>Examine WebServer.java and HttpRequest.java to see how concepts are implemented.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats">
+            <h2>Server Statistics</h2>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <h3>Supported MIME Types</h3>
+                    <p class="stat-number">11+</p>
+                    <p>HTML, CSS, JS, Images, PDF, JSON, and more</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Concurrent Connections</h3>
+                    <p class="stat-number">∞</p>
+                    <p>Limited only by system resources</p>
+                </div>
+                <div class="stat-card">
+                    <h3>HTTP Compliance</h3>
+                    <p class="stat-number">1.0</p>
+                    <p>Full HTTP/1.0 protocol support</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <h2>Ready to Learn?</h2>
+            <p>Dive into the source code to understand socket programming better.</p>
+            <div class="button-group">
+                <a href="/pages/socket-info.html" class="btn btn-primary">Learn Socket Programming</a>
+                <a href="/pages/examples.html" class="btn btn-secondary">View Code Examples</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Java Web Server - Educational Socket Programming Example</p>
+            <p>Built for teaching concurrent network programming concepts</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Java Web Server</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>Java Web Server</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/pages/about.html" class="active">About</a></li>
+                <li><a href="/pages/socket-info.html">Socket Info</a></li>
+                <li><a href="/pages/examples.html">Examples</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>About This Project</h1>
+            <p class="subtitle">Understanding Socket Programming Through Practice</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>Project Overview</h2>
+            <p>This Java Web Server is an educational project designed to teach students fundamental concepts of network programming and socket communication. It demonstrates how modern web servers work at the socket level.</p>
+        </section>
+
+        <section>
+            <h2>Key Concepts Demonstrated</h2>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>TCP/IP Sockets</h3>
+                    <p><strong>ServerSocket:</strong> Creates a listening socket on a port to accept incoming connections.</p>
+                    <p><strong>Socket:</strong> Represents the connection to a client with input/output streams.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Network I/O Streams</h3>
+                    <p>Input streams read data from the client, output streams send data back. Buffered readers make text parsing efficient.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Multi-threading</h3>
+                    <p>Each client request runs in its own thread, allowing the main server thread to accept new connections without blocking.</p>
+                </div>
+                <div class="info-box">
+                    <h3>HTTP Protocol</h3>
+                    <p>The server implements HTTP/1.0, parsing requests and sending properly formatted responses with headers and content.</p>
+                </div>
+                <div class="info-box">
+                    <h3>File I/O</h3>
+                    <p>Files are read in chunks and sent over the socket, demonstrating efficient handling of large files.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Exception Handling</h3>
+                    <p>The server handles various errors gracefully: port conflicts, missing files, client disconnections, etc.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Architecture</h2>
+            <div class="code-block">
+                <h3>Main Components</h3>
+                <pre><code>
+WebServer.java
+  ├── Creates ServerSocket on specified port
+  ├── Infinite loop calling socket.accept()
+  ├── For each client:
+  │   ├── Creates HttpRequest object
+  │   └── Spawns new Thread to handle request
+  └── Graceful shutdown on Ctrl+C
+
+HttpRequest.java (runs in separate thread)
+  ├── Reads HTTP request from socket input stream
+  ├── Parses request line to extract filename
+  ├── Opens and reads requested file
+  ├── Constructs HTTP response with headers
+  └── Sends response to client via output stream
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Why This Matters</h2>
+            <p>Understanding socket programming is fundamental to:</p>
+            <ul style="line-height: 1.9; margin-left: 2rem; color: #555;">
+                <li><strong>Web Development:</strong> Know how browsers communicate with servers</li>
+                <li><strong>System Design:</strong> Build scalable, concurrent applications</li>
+                <li><strong>Network Security:</strong> Understand how data travels over networks</li>
+                <li><strong>Performance:</strong> Optimize network communication and I/O operations</li>
+                <li><strong>Distributed Systems:</strong> Foundation for microservices and cloud applications</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Real-World Applications</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🌐 Web Servers</h3>
+                    <p>Apache, Nginx, and other web servers use these same socket concepts to handle thousands of concurrent requests.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📱 Mobile Apps</h3>
+                    <p>Mobile applications use sockets to communicate with backend servers, downloading data and uploading information.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎮 Game Servers</h3>
+                    <p>Multiplayer games use sockets for real-time communication between players and game servers.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💬 Chat Applications</h3>
+                    <p>Messaging and chat apps rely on socket communication for real-time message delivery.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📡 IoT Devices</h3>
+                    <p>Internet of Things devices communicate with servers and each other using network sockets.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔄 APIs & Services</h3>
+                    <p>RESTful APIs and web services are built on top of HTTP, which itself uses sockets.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Code Quality & Best Practices</h2>
+            <p>This implementation demonstrates several important best practices:</p>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>Try-with-Resources</h3>
+                    <p>Automatic resource management ensures streams are closed even if exceptions occur.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Proper Exception Handling</h3>
+                    <p>Specific exception types for different error conditions with meaningful error messages.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Comprehensive Logging</h3>
+                    <p>Every request is logged with client IP, request details, and response information.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Input Validation</h3>
+                    <p>Port numbers are validated, requests are checked for null, files are verified to exist.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Security Considerations</h3>
+                    <p>Files are served from current directory only, preventing directory traversal attacks.</p>
+                </div>
+                <div class="info-box">
+                    <h3>Graceful Shutdown</h3>
+                    <p>Server responds to Ctrl+C properly, closing resources cleanly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="text-align: center; padding: 2rem; background: var(--light-bg); border-radius: 8px;">
+            <h2>Ready to Dive Deeper?</h2>
+            <p>Check out the Socket Programming Guide and Code Examples pages to see detailed explanations.</p>
+            <div class="button-group" style="margin-top: 1.5rem;">
+                <a href="/pages/socket-info.html" class="btn btn-primary">Socket Programming Guide</a>
+                <a href="/pages/examples.html" class="btn btn-secondary">Code Examples</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Java Web Server - Educational Socket Programming Example</p>
+            <p>Built for teaching concurrent network programming concepts</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

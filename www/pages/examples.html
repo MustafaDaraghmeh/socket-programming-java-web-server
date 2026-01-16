@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Examples - Java Web Server</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>Java Web Server</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/pages/about.html">About</a></li>
+                <li><a href="/pages/socket-info.html">Socket Info</a></li>
+                <li><a href="/pages/examples.html" class="active">Examples</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Code Examples & Explanations</h1>
+            <p class="subtitle">Understanding the Implementation</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>Creating the Server Socket</h2>
+            <p>The first step is creating a ServerSocket that listens on a specific port:</p>
+            <div class="code-block">
+                <h3>WebServer.java - main() method</h3>
+                <pre><code>// Parse the port number from command line argument
+int port = Integer.parseInt(argv[0]);
+
+// Step 1: Create a ServerSocket
+// This socket listens for incoming TCP connections on the port
+ServerSocket serverSocket = new ServerSocket(port);
+System.out.println("Server listening on port " + port);
+
+// Step 2: Enter infinite loop to accept connections
+while (running) {
+    // socket.accept() BLOCKS until a client connects
+    // When a client connects, it returns a Socket object
+    Socket clientConnection = serverSocket.accept();
+    
+    // Step 3: Get client IP address
+    String clientIP = clientConnection.getInetAddress()
+                                     .getHostAddress();
+    
+    // Step 4: Create HttpRequest handler for this client
+    HttpRequest request = new HttpRequest(clientConnection, clientIP);
+    
+    // Step 5: Create a new thread to handle the request
+    Thread thread = new Thread(request);
+    
+    // Step 6: Start the thread
+    thread.start();
+    
+    // Main thread immediately goes back to accept()
+    // Ready for the next client!
+}
+                </code></pre>
+            </div>
+
+            <p style="margin-top: 1.5rem; padding: 1rem; background: var(--light-bg); border-left: 4px solid var(--secondary-color);">
+                <strong>Key Point:</strong> The <code>accept()</code> method is blocking. The thread pauses and waits until a client connects. This is why we need threading - so the main thread can immediately return to <code>accept()</code> after spawning a handler thread.
+            </p>
+        </section>
+
+        <section>
+            <h2>Handling HTTP Requests</h2>
+            <p>Each client request is handled by a separate HttpRequest thread:</p>
+            <div class="code-block">
+                <h3>HttpRequest.java - run() method (executed in separate thread)</h3>
+                <pre><code>public void run() {
+    try {
+        // Use try-with-resources for automatic resource cleanup
+        try (
+            InputStream inputStream = socket.getInputStream();
+            DataOutputStream outputStream = 
+                new DataOutputStream(socket.getOutputStream());
+            BufferedReader requestReader = 
+                new BufferedReader(new InputStreamReader(inputStream))
+        ) {
+            // Step 1: Read the HTTP request line
+            String requestLine = requestReader.readLine();
+            // Example: "GET /index.html HTTP/1.1"
+            
+            // Step 2: Parse the request line
+            StringTokenizer tokens = new StringTokenizer(requestLine);
+            String method = tokens.nextToken();       // "GET"
+            String fileName = tokens.nextToken();     // "/index.html"
+            String httpVersion = tokens.nextToken();  // "HTTP/1.1"
+            
+            // Log the request
+            System.out.println("[" + clientIP + "] " + requestLine);
+            
+            // Step 3: Read HTTP headers (until blank line)
+            String headerLine;
+            while ((headerLine = requestReader.readLine()) != null 
+                   && !headerLine.isEmpty()) {
+                // Could parse specific headers here
+            }
+            
+            // Step 4: Map request to file
+            fileName = "." + fileName;  // "./index.html"
+            
+            // Step 5: Check if file exists
+            File file = new File(fileName);
+            boolean fileExists = file.exists() && file.isFile();
+            
+            // Step 6: Send appropriate response
+            if (fileExists) {
+                sendSuccessResponse(outputStream, file);
+            } else {
+                sendErrorResponse(outputStream);
+            }
+        }
+    } catch (Exception e) {
+        System.err.println("[" + clientIP + "] Error: " + 
+                          e.getMessage());
+    }
+}
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Sending HTTP Response</h2>
+            <p>Constructing and sending a proper HTTP response with headers and file content:</p>
+            <div class="code-block">
+                <h3>HttpRequest.java - sendSuccessResponse() method</h3>
+                <pre><code>private void sendSuccessResponse(DataOutputStream outputStream, 
+                                  File file) throws IOException {
+    long fileSize = file.length();
+    String contentType = getContentType(file.getName());
+    
+    // Step 1: Send HTTP status line
+    outputStream.writeBytes("HTTP/1.0 200 OK" + CRLF);
+    // CRLF = "\r\n" (required by HTTP specification)
+    
+    // Step 2: Send response headers
+    outputStream.writeBytes("Content-Type: " + contentType + CRLF);
+    // Content-Type tells the browser how to interpret the file
+    
+    outputStream.writeBytes("Content-Length: " + fileSize + CRLF);
+    // Content-Length tells the browser how many bytes to expect
+    
+    // Step 3: Blank line separates headers from body
+    outputStream.writeBytes(CRLF);
+    
+    // Step 4: Send the file content
+    sendFileBytes(file, outputStream);
+    
+    // Log success
+    System.out.println("[" + clientIP + "] Sent: 200 OK (" + 
+                       fileSize + " bytes)");
+}
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Sending File Content</h2>
+            <p>Efficiently sending file bytes over the socket:</p>
+            <div class="code-block">
+                <h3>HttpRequest.java - sendFileBytes() method</h3>
+                <pre><code>private void sendFileBytes(File file, 
+                           OutputStream outputStream) throws IOException {
+    // Use try-with-resources to auto-close FileInputStream
+    try (FileInputStream fileStream = new FileInputStream(file)) {
+        
+        // Create a buffer (1KB) to hold bytes in memory
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        
+        // Read file in chunks and send to client
+        while ((bytesRead = fileStream.read(buffer)) != -1) {
+            // Write bytes to the socket's output stream
+            outputStream.write(buffer, 0, bytesRead);
+        }
+        
+        // Loop continues until entire file is sent
+    }
+    // FileInputStream is automatically closed by try-with-resources
+}
+                </code></pre>
+            </div>
+
+            <p style="margin-top: 1.5rem; padding: 1rem; background: var(--light-bg); border-left: 4px solid var(--secondary-color);">
+                <strong>Why use a buffer?</strong> Reading the entire file into memory would be wasteful. Instead, we read 1KB at a time and send it. This works for files of any size without excessive memory usage.
+            </p>
+        </section>
+
+        <section>
+            <h2>MIME Type Detection</h2>
+            <p>Determining the correct Content-Type header based on file extension:</p>
+            <div class="code-block">
+                <h3>HttpRequest.java - getContentType() method</h3>
+                <pre><code>private static String getContentType(String fileName) {
+    fileName = fileName.toLowerCase();
+    
+    // Check file extension and return appropriate MIME type
+    if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+        return "text/html";
+    }
+    if (fileName.endsWith(".css")) {
+        return "text/css";
+    }
+    if (fileName.endsWith(".js")) {
+        return "application/javascript";
+    }
+    if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+        return "image/jpeg";
+    }
+    if (fileName.endsWith(".png")) {
+        return "image/png";
+    }
+    // ... more types ...
+    
+    // Default for unknown types
+    return "application/octet-stream";
+    // This tells the browser to download the file
+}
+                </code></pre>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--light-bg); border-left: 4px solid var(--accent-color);">
+                <p><strong>Examples:</strong></p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>index.html → text/html (display as web page)</li>
+                    <li>style.css → text/css (apply as stylesheet)</li>
+                    <li>image.png → image/png (display as image)</li>
+                    <li>unknown.xyz → application/octet-stream (download as file)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Error Handling - 404 Response</h2>
+            <p>When a requested file is not found, send a proper HTTP 404 response:</p>
+            <div class="code-block">
+                <h3>HttpRequest.java - sendErrorResponse() method</h3>
+                <pre><code>private void sendErrorResponse(DataOutputStream outputStream) 
+                               throws IOException {
+    String errorBody = "&lt;HTML&gt;" +
+        "&lt;HEAD&gt;&lt;TITLE&gt;404 Not Found&lt;/TITLE&gt;&lt;/HEAD&gt;" +
+        "&lt;BODY&gt;" +
+        "&lt;H1&gt;404 Not Found&lt;/H1&gt;" +
+        "&lt;P&gt;The requested resource was not found.&lt;/P&gt;" +
+        "&lt;/BODY&gt;" +
+        "&lt;/HTML&gt;";
+    
+    // Send 404 status line
+    outputStream.writeBytes("HTTP/1.0 404 Not Found" + CRLF);
+    
+    // Send response headers
+    outputStream.writeBytes("Content-Type: text/html" + CRLF);
+    outputStream.writeBytes("Content-Length: " + errorBody.length() + CRLF);
+    
+    // Blank line
+    outputStream.writeBytes(CRLF);
+    
+    // Send error page
+    outputStream.writeBytes(errorBody);
+    
+    System.out.println("[" + clientIP + "] Sent: 404 Not Found");
+}
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Try-with-Resources Pattern</h2>
+            <p>Modern Java resource management to ensure proper cleanup:</p>
+            <div class="code-block">
+                <h3>Best Practice: Try-with-Resources</h3>
+                <pre><code>// GOOD: Auto-closes resources
+try (
+    InputStream in = socket.getInputStream();
+    OutputStream out = socket.getOutputStream()
+) {
+    // Use streams...
+} catch (IOException e) {
+    // Handle errors
+}
+// Streams are automatically closed here, even if exception occurred
+
+
+// AVOID: Manual resource management (error-prone)
+InputStream in = socket.getInputStream();
+OutputStream out = socket.getOutputStream();
+try {
+    // Use streams...
+} finally {
+    try {
+        in.close();
+        out.close();
+    } catch (IOException e) {
+        // What if close() throws an exception?
+    }
+}
+                </code></pre>
+            </div>
+
+            <p style="margin-top: 1.5rem; padding: 1rem; background: var(--light-bg); border-left: 4px solid var(--success-color);">
+                <strong>Advantage:</strong> Try-with-resources automatically closes resources in the correct order, even if exceptions occur. It's the recommended Java practice since Java 7.
+            </p>
+        </section>
+
+        <section>
+            <h2>Testing the Server</h2>
+            <div class="code-block">
+                <h3>Compile and Run</h3>
+                <pre><code># Compile all Java files
+javac *.java
+
+# Run the server
+java WebServer 5555
+
+# In another terminal, test with curl
+curl -v http://localhost:5555/index.html
+
+# Or in a web browser
+http://localhost:5555/
+                </code></pre>
+            </div>
+
+            <div class="code-block">
+                <h3>Sample Server Output</h3>
+                <pre><code>WebServer started on port 5555
+Open browser: http://localhost:5555/index.html
+Press Ctrl+C to stop the server
+---------------------------------------------------
+[127.0.0.1] GET /index.html HTTP/1.1
+[127.0.0.1] Sent: 200 OK (5432 bytes)
+[127.0.0.1] GET /css/style.css HTTP/1.1
+[127.0.0.1] Sent: 200 OK (8921 bytes)
+[127.0.0.1] GET /notfound.html HTTP/1.1
+[127.0.0.1] Sent: 404 Not Found
+                </code></pre>
+            </div>
+        </section>
+
+        <section style="text-align: center; padding: 2rem; background: var(--light-bg); border-radius: 8px;">
+            <h2>Learning Exercises</h2>
+            <p>Try implementing these features to deepen your understanding:</p>
+            <ul style="text-align: left; display: inline-block; margin-top: 1rem;">
+                <li>Add request logging to a file with timestamps</li>
+                <li>Implement directory listing (serve folder contents)</li>
+                <li>Add HEAD request support (without response body)</li>
+                <li>Implement URL query parameters</li>
+                <li>Add basic authentication with username/password</li>
+                <li>Create a statistics page showing server info</li>
+                <li>Implement HTTP caching headers</li>
+                <li>Add content compression (gzip)</li>
+            </ul>
+            <div class="button-group" style="margin-top: 1.5rem;">
+                <a href="/pages/socket-info.html" class="btn btn-secondary">Back to Guide</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Java Web Server - Educational Socket Programming Example</p>
+            <p>Built for teaching concurrent network programming concepts</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket Programming Guide - Java Web Server</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>Java Web Server</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/pages/about.html">About</a></li>
+                <li><a href="/pages/socket-info.html" class="active">Socket Info</a></li>
+                <li><a href="/pages/examples.html">Examples</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Socket Programming Guide</h1>
+            <p class="subtitle">Deep Dive into Java Socket Communication</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>What is a Socket?</h2>
+            <p>A socket is an endpoint of a network communication link. Think of it as a "plug" that your application uses to connect to another computer over a network. Java provides classes to work with sockets:</p>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>ServerSocket</h3>
+                    <p><strong>Purpose:</strong> Listens for incoming connection requests from clients.</p>
+                    <p><strong>Analogy:</strong> Like a receptionist at a company, waiting to answer phones.</p>
+                    <p><strong>Port:</strong> Listens on a specific port (1024-65535).</p>
+                </div>
+                <div class="info-box">
+                    <h3>Socket</h3>
+                    <p><strong>Purpose:</strong> Represents an active connection between client and server.</p>
+                    <p><strong>Analogy:</strong> Like a phone call - once connected, both parties can communicate.</p>
+                    <p><strong>Streams:</strong> Has input and output streams for bidirectional communication.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>The Client-Server Model</h2>
+            <div class="code-block">
+                <h3>Server Side</h3>
+                <pre><code>1. ServerSocket serverSocket = new ServerSocket(5555);
+   // Create a listening socket on port 5555
+
+2. Socket clientSocket = serverSocket.accept();
+   // BLOCKING: Wait until a client connects
+   // Returns a Socket representing the connection
+
+3. InputStream in = clientSocket.getInputStream();
+   OutputStream out = clientSocket.getOutputStream();
+   // Get communication channels with the client
+
+4. Process the request...
+
+5. clientSocket.close();
+   serverSocket.close();
+   // Clean up resources
+                </code></pre>
+            </div>
+
+            <div class="code-block">
+                <h3>Client Side</h3>
+                <pre><code>1. Socket socket = new Socket("localhost", 5555);
+   // Connect to server on localhost:5555
+
+2. InputStream in = socket.getInputStream();
+   OutputStream out = socket.getOutputStream();
+   // Get communication channels
+
+3. Send request and receive response...
+
+4. socket.close();
+   // Close the connection
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Key Concepts</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🔌 Connection-Oriented</h3>
+                    <p><strong>TCP/IP:</strong> The protocol used for reliable, ordered delivery of messages. Think of it like a phone call - both sides stay connected.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔄 Blocking I/O</h3>
+                    <p><strong>accept():</strong> The server's accept() method blocks until a client connects. The thread pauses and waits.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🧵 Threading</h3>
+                    <p><strong>Concurrency:</strong> Each client needs its own thread so the server can accept new connections while serving existing clients.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Streams</h3>
+                    <p><strong>Input/Output:</strong> Sockets provide input and output streams for reading and writing data.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Efficiency</h3>
+                    <p><strong>Buffering:</strong> Use BufferedReader and BufferedWriter to reduce system calls and improve performance.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🛡️ Resource Management</h3>
+                    <p><strong>Cleanup:</strong> Always close sockets and streams, preferably with try-with-resources.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>HTTP Protocol Over Sockets</h2>
+            <p>HTTP is a protocol built on top of TCP/IP sockets. Here's how a request/response cycle works:</p>
+            
+            <div class="code-block">
+                <h3>HTTP Request (Client → Server)</h3>
+                <pre><code>GET /index.html HTTP/1.1
+Host: localhost:5555
+Connection: close
+User-Agent: Mozilla/5.0
+Accept: text/html
+
+(blank line - end of headers)
+(optional request body)
+                </code></pre>
+            </div>
+
+            <div class="code-block">
+                <h3>HTTP Response (Server → Client)</h3>
+                <pre><code>HTTP/1.0 200 OK
+Content-Type: text/html
+Content-Length: 1234
+
+(blank line - end of headers)
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;Test&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;Hello World&lt;/body&gt;
+&lt;/html&gt;
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Request Parsing Example</h2>
+            <div class="code-block">
+                <h3>How WebServer Parses Requests</h3>
+                <pre><code>// Read the request line
+String requestLine = bufferedReader.readLine();
+// "GET /index.html HTTP/1.1"
+
+// Parse it
+StringTokenizer tokens = new StringTokenizer(requestLine);
+String method = tokens.nextToken();      // "GET"
+String fileName = tokens.nextToken();    // "/index.html"
+String httpVersion = tokens.nextToken(); // "HTTP/1.1"
+
+// Read headers (until blank line)
+String headerLine;
+while ((headerLine = bufferedReader.readLine()) != null 
+       && !headerLine.isEmpty()) {
+    // Process each header
+}
+
+// Now we know what file to serve!
+File file = new File("." + fileName);
+// "." + "/index.html" = "./index.html"
+                </code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Threading & Concurrency</h2>
+            <p>Why is threading important for a web server? Let's trace through the execution:</p>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h3>T=0: Server Startup</h3>
+                    <p>Main thread creates ServerSocket and calls accept().</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>T=1: First Client Connects</h3>
+                    <p>Main thread's accept() returns a Socket. Main thread creates Thread1 for HttpRequest.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>T=2: Second Client Connects (while Thread1 is serving Client 1)</h3>
+                    <p>Main thread was already back at accept() - it immediately accepts the new connection!</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>T=3: Two Concurrent Requests</h3>
+                    <p>Thread1 serves Client1, Thread2 serves Client2, Main thread waits for Client3.</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>T=4: Request Complete</h3>
+                    <p>Thread1 closes socket and terminates. Socket resources are freed.</p>
+                </div>
+            </div>
+
+            <p style="margin-top: 2rem; padding: 1rem; background: var(--light-bg); border-left: 4px solid var(--accent-color);">
+                <strong>Without threading:</strong> If the main thread processed requests sequentially, Client2 would have to wait until Client1's request completed. The server would be unresponsive!
+            </p>
+        </section>
+
+        <section>
+            <h2>Common Pitfalls & Solutions</h2>
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>❌ Forgetting to Close Sockets</h3>
+                    <p>Leaked socket connections consume system resources. Always use try-with-resources or finally blocks.</p>
+                </div>
+                <div class="info-box">
+                    <h3>❌ Blocking the Main Thread</h3>
+                    <p>Processing requests on the main thread prevents accepting new connections. Always use separate threads.</p>
+                </div>
+                <div class="info-box">
+                    <h3>❌ Not Parsing Headers Correctly</h3>
+                    <p>Failing to read all headers before processing request body causes protocol violations.</p>
+                </div>
+                <div class="info-box">
+                    <h3>❌ Ignoring CRLF Line Endings</h3>
+                    <p>HTTP requires CRLF (\r\n) for line endings, not just LF (\n). Using wrong line endings breaks HTTP.</p>
+                </div>
+                <div class="info-box">
+                    <h3>❌ Not Setting Content-Length</h3>
+                    <p>Clients need to know how much data to read. Always send Content-Length header.</p>
+                </div>
+                <div class="info-box">
+                    <h3>❌ Poor Error Handling</h3>
+                    <p>Uncaught exceptions crash threads. Always use try-catch for client-specific errors.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="text-align: center; padding: 2rem; background: var(--light-bg); border-radius: 8px;">
+            <h2>See It In Action</h2>
+            <p>Check out the code examples to see how these concepts are implemented in the WebServer.</p>
+            <a href="/pages/examples.html" class="btn btn-primary" style="margin-top: 1rem;">View Code Examples</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Java Web Server - Educational Socket Programming Example</p>
+            <p>Built for teaching concurrent network programming concepts</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
