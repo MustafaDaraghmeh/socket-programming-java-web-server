@@ -296,7 +296,7 @@ Students can extend this project with:
 ## References
 
 - [Java Socket API](https://docs.oracle.com/javase/8/docs/api/java/net/Socket.html)
-- [HTTP/1.1 Specification](https://www.w3.org/Protocols/rfc2616/)
+- [HTTP/1.1 Specification](https://www.rfc-editor.org/info/rfc2616)
 - [Java Threading](https://docs.oracle.com/javase/tutorial/essential/concurrency/)
 
 ## Author
